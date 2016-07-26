@@ -1,0 +1,142 @@
+<?php
+
+define('SLUG', 'bookshelf');
+
+/**
+ * Implements hook_theme().
+ * 
+ * Might not need this
+ */
+
+function nnels_bookshelf_theme( $existing, $type, $theme, $path ) {
+  $theme = array();
+  $theme['TEST_NAME'] = array(
+    'template' => 'TEMPLATE-NAME',
+    'path' => drupal_get_path('module', 'nnels_bookshelf'),
+  );
+
+  return $theme;
+}
+
+/**
+ * Define the bookshelf flag
+ *
+ */
+
+function nnels_bookshelf_flag_default_flags() {
+  $flags = array();
+	$flags[SLUG] = array(
+	  'entity_type' => 'node',
+	  'title' => 'Bookshelf',
+	  'global' => FALSE,
+	  'types' => array(
+	    0 => 'repository_item',
+	  ),
+	  'roles' => array('2,3'),
+	  'flag_short' => 'Add to ' . SLUG,
+	  'flag_long' => 'Add this item to your ' . SLUG . ' for later',
+	  'flag_message' => 'Added!',
+	  'unflag_short' => 'Remove from ' . SLUG,
+	  'unflag_long' => 'Remove this item from your ' . SLUG,
+	  'unflag_message' => 'Removed!',
+	  'unflag_denied_text' => '',
+	  'link_type' => 'toggle',
+	  'weight' => 0,
+	  'show_in_links' => array(
+	    'full' => 0,
+	    'teaser' => 0,
+	    'rss' => 0,
+	    'search_index' => 0,
+	    'search_result' => 0,
+	    'token' => 0,
+	  ),
+	  'show_as_field' => 0,
+	  'show_on_form' => 0,
+	  'access_author' => '',
+	  'show_contextual_link' => 0,
+	  'i18n' => 1,
+	  'api_version' => 3,
+	);
+	return $flags;
+}
+
+
+/*
+ * Implementation of hook_views_api()
+ */
+function nnels_bookshelf_views_api() {
+  return array('api' => 3.0);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+
+//Create My Bookshelf block button  
+
+function nnels_bookshelf_block_info() {
+
+	$blocks = array();
+
+  $blocks["SLUG" . '_button'] = array(
+    'info' => t('My Bookshelf button'),
+    'cache' => DRUPAL_CACHE_PER_USER,
+    'region' => 'Header',
+    'visibility' => BLOCK_VISIBLITY_NOTLISTED,
+    'weight' => -35,
+    );
+
+  return $blocks;
+}
+
+function nnels_bookshelf_block_view( $delta = '' ) {
+  
+  $block = array();
+
+  if ($delta = SLUG . '_button') {
+  	global $user;
+
+  	$block['subject'] = '';
+  	$block['content'] = "<a href='/user/" . $user->uid . "/" . SLUG  . "'><i class='fa fa-list-alt' alt='My Bookshelf Icon' aria-hidden='true'></i> My Bookshelf</a>";
+
+  	return $block;
+  }
+}
+
+function nnels_bookshelf_action_info() {
+	return array(
+		'nnels_bookshelf_clear_all_user_flags' => array(
+			'type' => 'node',
+			'label' => t('Clear this bookshelf'),
+			'configurable' => FALSE,
+			'triggers' => array('any'),
+			'aggregate' => TRUE,
+			'permissions' => array( 'access content' ),
+			)
+
+		);
+}
+
+/**
+ * Implements hook_action_info().
+ */
+
+function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
+
+	global $user;
+	$uid = $user->uid;
+
+	$entity_id = NULL;
+	$entity_type = 'node';
+
+ 	$flagged_items = flag_get_user_flags( $entity_type, $entity_id, $uid );
+  if ( empty($flagged_items) ) return;
+
+  $flag = flag_get_flag( SLUG );
+  dpm($flagged_items);
+
+  foreach($flagged_items[ SLUG ] as $nid => $obj) {
+    $flag->flag('unflag', $nid);
+    dpm($flagged_items);
+  }
+}

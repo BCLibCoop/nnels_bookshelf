@@ -1,0 +1,8 @@
+name = NNELS Bookshelf
+description = "Custom node flag for NNELS Bookshelf functionality, allows users to save a printable favourites list"
+version = 7.x-1.x
+core = 7.x
+dependencies[] = views
+dependencies[] = views_flag_refresh
+dependencies[] = flag
+dependencies[] = fontawesome
