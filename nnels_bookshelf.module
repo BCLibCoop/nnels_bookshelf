@@ -3,22 +3,6 @@
 define('SLUG', 'bookshelf');
 
 /**
- * Implements hook_theme().
- * 
- * Might not need this
- */
-
-function nnels_bookshelf_theme( $existing, $type, $theme, $path ) {
-  $theme = array();
-  $theme['TEST_NAME'] = array(
-    'template' => 'TEMPLATE-NAME',
-    'path' => drupal_get_path('module', 'nnels_bookshelf'),
-  );
-
-  return $theme;
-}
-
-/**
  * Define the bookshelf flag
  *
  */
@@ -116,9 +100,9 @@ function nnels_bookshelf_block_view( $delta = '' ) {
 
 function nnels_bookshelf_action_info() {
 	return array(
-		'nnels_bookshelf_clear_all_user_flags' => array(
+		'nnels_'.SLUG.'_clear_all_user_flags' => array(
 			'type' => 'node',
-			'label' => t('Clear this bookshelf'),
+			'label' => t('Clear this ' . SLUG),
 			'configurable' => FALSE,
 			'triggers' => array('any'),
 			'aggregate' => TRUE,
@@ -144,5 +128,7 @@ function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
 
   foreach($flagged_items[ SLUG ] as $nid => $obj) {
     $flag->flag('unflag', $nid);
+    //return TRUE;
   }
+  drupal_set_message("Cleared your " . SLUG);
 }
