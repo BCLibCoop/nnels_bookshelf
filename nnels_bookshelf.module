@@ -32,7 +32,7 @@ function nnels_bookshelf_flag_default_flags() {
 	  'types' => array(
 	    0 => 'repository_item',
 	  ),
-	  'roles' => array('2,3'),
+	  'roles' => array('2,3,4,5,6,7'),
 	  'flag_short' => 'Add to ' . SLUG,
 	  'flag_long' => 'Add this item to your ' . SLUG . ' for later',
 	  'flag_message' => 'Added!',
@@ -63,16 +63,17 @@ function nnels_bookshelf_flag_default_flags() {
 
 /*
  * Implementation of hook_views_api()
+ *
  */
+
 function nnels_bookshelf_views_api() {
   return array('api' => 3.0);
 }
 
 /**
- * Implements hook_block_info().
+ * Implements hook_block_info()
+ *
  */
-
-//Create My Bookshelf block button  
 
 function nnels_bookshelf_block_info() {
 
@@ -89,6 +90,11 @@ function nnels_bookshelf_block_info() {
   return $blocks;
 }
 
+/**
+ * Implements hook_block_view
+ *
+ */
+
 function nnels_bookshelf_block_view( $delta = '' ) {
   
   $block = array();
@@ -102,6 +108,11 @@ function nnels_bookshelf_block_view( $delta = '' ) {
   	return $block;
   }
 }
+
+/**
+ * Implements hook_action_info()
+ *
+ */
 
 function nnels_bookshelf_action_info() {
 	return array(
@@ -117,10 +128,7 @@ function nnels_bookshelf_action_info() {
 		);
 }
 
-/**
- * Implements hook_action_info().
- */
-
+//Provides action to clear current user's bookshelf
 function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
 
 	global $user;
@@ -133,10 +141,8 @@ function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
   if ( empty($flagged_items) ) return;
 
   $flag = flag_get_flag( SLUG );
-  dpm($flagged_items);
 
   foreach($flagged_items[ SLUG ] as $nid => $obj) {
     $flag->flag('unflag', $nid);
-    dpm($flagged_items);
   }
 }
