@@ -4,6 +4,7 @@ version = 7.x-1.x
 core = 7.x
 dependencies[] = views
 dependencies[] = views_data_export
+dependencies[] = views_distinct
 dependencies[] = views_flag_refresh
 dependencies[] = flag
 dependencies[] = fontawesome
