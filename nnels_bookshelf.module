@@ -63,7 +63,7 @@ function nnels_bookshelf_block_info() {
 
 	$blocks = array();
 
-  $blocks["SLUG" . '_button'] = array(
+  $blocks[SLUG . '_button'] = array(
     'info' => t('My Bookshelf button'),
     'cache' => DRUPAL_CACHE_PER_USER,
     'region' => 'Header',
