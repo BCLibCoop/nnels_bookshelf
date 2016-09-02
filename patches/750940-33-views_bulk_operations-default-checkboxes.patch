@@ -1,0 +1,205 @@
+diff --git a/css/views_bulk_operations.css b/css/views_bulk_operations.css
+index a93cf22..bbcddfb 100644
+--- a/css/views_bulk_operations.css
++++ b/css/views_bulk_operations.css
+@@ -33,3 +33,9 @@
+   padding: 0 !important;
+   margin: 0 !important;
+ }
++
++/* Hide checkboxes */
++input.vbo-hidden,
++form.vbo-hidden-form .views-field-views-bulk-operations {
++  display: none;
++}
+\ No newline at end of file
+diff --git a/js/views_bulk_operations.js b/js/views_bulk_operations.js
+index ca76df8..7b8f4a1 100644
+--- a/js/views_bulk_operations.js
++++ b/js/views_bulk_operations.js
+@@ -44,6 +44,10 @@
+         Drupal.vbo.tableSelectThisPage(form);
+       }
+     });
++    // Deal with the check all by default setting
++    if ($('.select-all-rows', form).val()) {
++      $('.vbo-table-select-all', form).attr('checked', 'checked');
++    }
+ 
+     // Set up the ability to click anywhere on the row to select it.
+     if (Drupal.settings.vbo.row_clickable) {
+diff --git a/views/views_bulk_operations_handler_field_operations.inc b/views/views_bulk_operations_handler_field_operations.inc
+index 61886d4..9873f14 100644
+--- a/views/views_bulk_operations_handler_field_operations.inc
++++ b/views/views_bulk_operations_handler_field_operations.inc
+@@ -58,6 +58,8 @@ class views_bulk_operations_handler_field_operations extends views_handler_field
+         'row_clickable' => array('default' => TRUE),
+         'force_single' => array('default' => FALSE),
+         'entity_load_capacity' => array('default' => 10),
++        'select_all_by_default' => array('default' => FALSE),
++        'select_all_hide_checkboxes' => array('default' => FALSE),
+         'skip_batching' => array('default' => 0),
+       ),
+     );
+@@ -135,6 +137,18 @@ class views_bulk_operations_handler_field_operations extends views_handler_field
+       '#default_value' => $this->options['vbo_settings']['force_single'],
+       '#description' => t('Check this box to restrict selection to a single value.'),
+     );
++    $form['vbo_settings']['select_all_by_default'] = array(
++      '#type' => 'checkbox',
++      '#title' => t('Select all by default'),
++      '#description' => t('Check this box to have the "select all" checkbox selected by default.'),
++      '#default_value' => $this->options['vbo_settings']['select_all_by_default'],
++    );
++    $form['vbo_settings']['select_all_hide_checkboxes'] = array(
++      '#type' => 'checkbox',
++      '#title' => t('Hide checkboxes'),
++      '#description' => t('Select this option to hide the checkboxes next to each item.'),
++      '#default_value' => $this->options['vbo_settings']['select_all_hide_checkboxes'],
++    );
+     $form['vbo_settings']['entity_load_capacity'] = array(
+       '#type' => 'textfield',
+       '#title' => t('Number of entities to load at once'),
+@@ -260,6 +274,11 @@ class views_bulk_operations_handler_field_operations extends views_handler_field
+     $form[$this->options['id']] = array(
+       '#tree' => TRUE,
+     );
++
++    // Look up the "select all" options so we can add them when we write each checkbox.
++    $select_all = (bool) $this->get_vbo_option('select_all_by_default');
++    $css_classes = $this->get_vbo_option('select_all_hide_checkboxes') ? array('vbo-select', 'vbo-hidden') : array('vbo-select');
++
+     // At this point, the query has already been run, so we can access the results
+     // in order to get the base key value (for example, nid for nodes).
+     foreach ($this->view->result as $row_index => $row) {
+@@ -276,8 +295,8 @@ class views_bulk_operations_handler_field_operations extends views_handler_field
+         $form[$this->options['id']][$row_index] = array(
+           '#type' => 'checkbox',
+           '#return_value' => $entity_id,
+-          '#default_value' => FALSE,
+-          '#attributes' => array('class' => array('vbo-select')),
++          '#default_value' => $select_all,
++          '#attributes' => array('class' => $css_classes),
+         );
+       }
+     }
+diff --git a/views_bulk_operations.module b/views_bulk_operations.module
+index 49ccf55..de33cdc 100644
+--- a/views_bulk_operations.module
++++ b/views_bulk_operations.module
+@@ -41,20 +41,21 @@ function views_bulk_operations_load_action_includes() {
+   // The list of VBO actions is fairly static, so it's hardcoded for better
+   // performance (hitting the filesystem with file_scan_directory(), and then
+   // caching the result has its cost).
++  $path = drupal_get_path('module', 'views_bulk_operations') . '/actions/';
+   $files = array(
+-    'archive.action',
+-    'argument_selector.action',
+-    'book.action',
+-    'delete.action',
+-    'modify.action',
+-    'script.action',
+-    'user_roles.action',
+-    'user_cancel.action',
++    'archive.action.inc',
++    'argument_selector.action.inc',
++    'book.action.inc',
++    'delete.action.inc',
++    'modify.action.inc',
++    'script.action.inc',
++    'user_roles.action.inc',
++    'user_cancel.action.inc',
+   );
+ 
+   if (!$loaded) {
+     foreach ($files as $file) {
+-      module_load_include('inc', 'views_bulk_operations', 'actions/' . $file);
++      include_once $path . $file;
+     }
+     $loaded = TRUE;
+   }
+@@ -108,7 +109,7 @@ function views_bulk_operations_views_api() {
+ function views_bulk_operations_theme() {
+   $themes = array(
+     'views_bulk_operations_select_all' => array(
+-      'variables' => array('view' => NULL, 'enable_select_all_pages' => TRUE),
++      'variables' => array('view' => NULL, 'enable_select_all_pages' => TRUE, 'select_all_by_default' => FALSE, 'select_all_hide_checkboxes' => FALSE),
+     ),
+     'views_bulk_operations_confirmation' => array(
+       'variables' => array('rows' => NULL, 'vbo' => NULL, 'operation' => NULL, 'select_all_pages' => FALSE),
+@@ -357,7 +358,7 @@ function views_bulk_operations_form_alter(&$form, &$form_state, $form_id) {
+  */
+ function views_bulk_operations_views_post_build(&$view) {
+   $vbo = _views_bulk_operations_get_field($view);
+-  if ($vbo && count($vbo->get_selected_operations()) < 1) {
++  if ($vbo && $vbo->get_selected_operations() < 1) {
+     $vbo->options['exclude'] = TRUE;
+   }
+ }
+@@ -374,6 +375,8 @@ function views_bulk_operations_views_post_build(&$view) {
+ function theme_views_bulk_operations_select_all($variables) {
+   $view = $variables['view'];
+   $enable_select_all_pages = $variables['enable_select_all_pages'];
++  $select_all_by_default = $variables['select_all_by_default'] ? 1 : '';
++
+   $form = array();
+ 
+   if ($view->style_plugin instanceof views_plugin_style_table && empty($view->style_plugin->options['grouping'])) {
+@@ -412,7 +415,7 @@ function theme_views_bulk_operations_select_all($variables) {
+     $form['select_all']['this_page'] = array(
+       '#type' => 'checkbox',
+       '#title' => t('Select all items on this page'),
+-      '#default_value' => '',
++      '#default_value' => $select_all_by_default,
+       '#attributes' => array('class' => array('vbo-select-this-page')),
+     );
+ 
+@@ -424,7 +427,7 @@ function theme_views_bulk_operations_select_all($variables) {
+       $form['select_all']['all_pages'] = array(
+         '#type' => 'checkbox',
+         '#title' => t('Select all items on all pages'),
+-        '#default_value' => '',
++        '#default_value' => $select_all_by_default,
+         '#attributes' => array('class' => array('vbo-select-all-pages')),
+       );
+     }
+@@ -466,11 +469,16 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
+     drupal_add_http_header('Cache-Control', 'no-store'); // works for Firefox and other browsers
+   }
+ 
++  // Deal with select all settings.
++  $select_all_by_default = (bool) $vbo->get_vbo_option('select_all_by_default');
++  $select_all_hide_checkboxes = $vbo->get_vbo_option('select_all_hide_checkboxes');
++  $css_classes = $select_all_hide_checkboxes ? array('vbo-select', 'vbo-hidden') : array('vbo-select');
++
+   // Set by JS to indicate that all rows on all pages are selected.
+   $form['select_all'] = array(
+     '#type' => 'hidden',
+     '#attributes' => array('class' => 'select-all-rows'),
+-    '#default_value' => FALSE,
++    '#default_value' => $select_all_by_default,
+   );
+   $form['select'] = array(
+     '#type' => 'fieldset',
+@@ -522,10 +530,20 @@ function views_bulk_operations_form($form, &$form_state, $vbo) {
+     }
+     $form['select_all_markup'] = array(
+       '#type' => 'markup',
+-      '#markup' => theme('views_bulk_operations_select_all', array('view' => $vbo->view, 'enable_select_all_pages' => $enable_select_all_pages)),
++      '#markup' => theme('views_bulk_operations_select_all', array(
++        'view' => $vbo->view,
++        'enable_select_all_pages' => $enable_select_all_pages,
++        'select_all_by_default' => $select_all_by_default,
++        'select_all_hide_checkboxes' => $select_all_hide_checkboxes,
++      )),
+     );
+   }
+ 
++  // Add a global form class if we are trying to hide all checkboxes.
++  if ($select_all_hide_checkboxes) {
++    $form['#attributes'] = array('class' => 'vbo-hidden-form');
++  }
++
+   return $form;
+ }
+ 
