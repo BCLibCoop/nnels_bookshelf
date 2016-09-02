@@ -115,6 +115,7 @@ function nnels_bookshelf_action_info() {
 //Provides action to clear current user's bookshelf
 function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
 
+	//We don't actually care about any set of nodes, this clears it all thanks to the included patch for views_bulk_operations (750940-33-views_bulk_operations-default-checkboxes.patch)
 	global $user;
 	$uid = $user->uid;
 
@@ -128,7 +129,6 @@ function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
 
   foreach($flagged_items[ SLUG ] as $nid => $obj) {
     $flag->flag('unflag', $nid);
-    //return TRUE;
   }
-  drupal_set_message("Cleared your " . SLUG);
+  //drupal_set_message("Cleared your " . SLUG);
 }
