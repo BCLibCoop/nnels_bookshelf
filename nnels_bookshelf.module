@@ -67,7 +67,7 @@ function nnels_bookshelf_block_info() {
     'info' => t('My Bookshelf button'),
     'cache' => DRUPAL_CACHE_PER_USER,
     'region' => 'Header',
-    'visibility' => BLOCK_VISIBLITY_NOTLISTED,
+    'visibility' => 0,
     'weight' => -35,
     );
 
