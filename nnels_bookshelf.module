@@ -100,9 +100,9 @@ function nnels_bookshelf_block_view( $delta = '' ) {
 
 function nnels_bookshelf_action_info() {
 	return array(
-		'nnels_'.SLUG.'_clear_all_user_flags' => array(
+		'nnels_'.SLUG.'_remove_selected_user_flags' => array(
 			'type' => 'node',
-			'label' => t('Clear this ' . SLUG),
+			'label' => t('Remove bookshelf items.'),
 			'configurable' => FALSE,
 			'triggers' => array('any'),
 			'aggregate' => TRUE,
@@ -112,10 +112,9 @@ function nnels_bookshelf_action_info() {
 		);
 }
 
-//Provides action to clear current user's bookshelf
-function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
+//Provides action to remove items from current user's bookshelf
+function nnels_bookshelf_remove_selected_user_flags( &$node, $context ) {
 
-	//We don't actually care about any set of nodes, this clears it all thanks to the included patch for views_bulk_operations (750940-33-views_bulk_operations-default-checkboxes.patch)
 	global $user;
 	$uid = $user->uid;
 
@@ -123,12 +122,17 @@ function nnels_bookshelf_clear_all_user_flags( &$node, $context ) {
 	$entity_type = 'node';
 
  	$flagged_items = flag_get_user_flags( $entity_type, $entity_id, $uid );
-  if ( empty($flagged_items) ) return;
+    if ( empty($flagged_items) ) return;
 
-  $flag = flag_get_flag( SLUG );
+    $flag = flag_get_flag( SLUG );
 
-  foreach($flagged_items[ SLUG ] as $nid => $obj) {
-    $flag->flag('unflag', $nid);
-  }
-  //drupal_set_message("Cleared your " . SLUG);
+    $nodes_to_unflag = array_intersect_key($node, $flagged_items[SLUG]);
+
+    foreach($nodes_to_unflag as $nid => $obj) {
+      $flag->flag('unflag', $nid);
+    }
+
+    $message = sprintf("Removed %d items from your %s.", count
+    ($nodes_to_unflag), SLUG);
+    drupal_set_message($message);
 }
