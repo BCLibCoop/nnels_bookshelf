@@ -138,7 +138,7 @@ $handler->display->display_options['arguments']['uid']['summary']['number_of_rec
 $handler->display->display_options['arguments']['uid']['summary']['format'] = 'default_summary';
 $handler->display->display_options['arguments']['uid']['summary_options']['items_per_page'] = '25';
 $handler->display->display_options['arguments']['uid']['specify_validation'] = TRUE;
-/* Filter criterion: Content: Published */
+/* Filter criterion: Content: Published status */
 $handler->display->display_options['filters']['status']['id'] = 'status';
 $handler->display->display_options['filters']['status']['table'] = 'node';
 $handler->display->display_options['filters']['status']['field'] = 'status';
@@ -155,7 +155,7 @@ $handler->display->display_options['query']['type'] = 'views_query';
 $handler->display->display_options['query']['options']['distinct'] = TRUE;
 $handler->display->display_options['defaults']['pager'] = FALSE;
 $handler->display->display_options['pager']['type'] = 'full';
-$handler->display->display_options['pager']['options']['items_per_page'] = '15';
+$handler->display->display_options['pager']['options']['items_per_page'] = '100';
 $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['pager']['options']['id'] = '0';
 $handler->display->display_options['pager']['options']['quantity'] = '9';
@@ -246,7 +246,7 @@ $handler->display->display_options['defaults']['fields'] = FALSE;
 $handler->display->display_options['fields']['views_bulk_operations']['id'] = 'views_bulk_operations';
 $handler->display->display_options['fields']['views_bulk_operations']['table'] = 'views_entity_node';
 $handler->display->display_options['fields']['views_bulk_operations']['field'] = 'views_bulk_operations';
-$handler->display->display_options['fields']['views_bulk_operations']['label'] = 'Select';
+$handler->display->display_options['fields']['views_bulk_operations']['label'] = '';
 $handler->display->display_options['fields']['views_bulk_operations']['element_label_colon'] = FALSE;
 $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['display_type'] = '1';
 $handler->display->display_options['fields']['views_bulk_operations']['vbo_settings']['enable_select_all_pages'] = 0;
@@ -258,7 +258,6 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
   'action::nnels_bookshelf_clear_all_user_flags' => array(
     'selected' => 1,
     'skip_confirmation' => 0,
-    'skip_permission_check' => 0,
     'override_label' => 0,
     'label' => '',
   ),
@@ -307,20 +306,12 @@ $handler->display->display_options['fields']['body']['alter']['html'] = TRUE;
 $handler->display->display_options['fields']['body']['settings'] = array(
   'trim_length' => '150',
 );
-/* Field: Remove link */
-$handler->display->display_options['fields']['php']['id'] = 'php';
-$handler->display->display_options['fields']['php']['table'] = 'views';
-$handler->display->display_options['fields']['php']['field'] = 'php';
-$handler->display->display_options['fields']['php']['ui_name'] = 'Remove link';
-$handler->display->display_options['fields']['php']['label'] = 'Actions';
-$handler->display->display_options['fields']['php']['element_label_colon'] = FALSE;
-$handler->display->display_options['fields']['php']['use_php_setup'] = 0;
-$handler->display->display_options['fields']['php']['php_output'] = '<?php 
-$flag = flag_get_flag(\'bookshelf\');
-$flag->unflag_short = \'Remove\';
-print flag_create_link(\'bookshelf\', $data->nid); ?>';
-$handler->display->display_options['fields']['php']['use_php_click_sortable'] = '0';
-$handler->display->display_options['fields']['php']['php_click_sortable'] = '';
+/* Field: Content: Bookshelf Remove Link */
+$handler->display->display_options['fields']['bookshelf_remove']['id'] = 'bookshelf_remove';
+$handler->display->display_options['fields']['bookshelf_remove']['table'] = 'node';
+$handler->display->display_options['fields']['bookshelf_remove']['field'] = 'bookshelf_remove';
+$handler->display->display_options['fields']['bookshelf_remove']['label'] = '';
+$handler->display->display_options['fields']['bookshelf_remove']['element_label_colon'] = FALSE;
 $handler->display->display_options['use_ajax_flags'] = array(
   'bookshelf' => 'bookshelf',
 );
@@ -341,7 +332,7 @@ $handler->display->display_options['hide_admin_links'] = TRUE;
 $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['style_plugin'] = 'views_data_export_doc';
-$handler->display->display_options['style_options']['attach_text'] = 'Download Bookshelf as DOC file';
+$handler->display->display_options['style_options']['attach_text'] = 'Download DOC file';
 $handler->display->display_options['style_options']['provide_file'] = 1;
 $handler->display->display_options['style_options']['filename'] = '%1-title_nnels_bookshelf-%timestamp-mmm%timestamp-dd%timestamp-yyyy.doc';
 $handler->display->display_options['style_options']['parent_sort'] = 1;
@@ -446,7 +437,7 @@ $handler->display->display_options['query']['options']['distinct'] = TRUE;
 $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['pager']['options']['offset'] = '0';
 $handler->display->display_options['style_plugin'] = 'views_data_export_xls';
-$handler->display->display_options['style_options']['attach_text'] = 'Download Bookshelf as XLS file';
+$handler->display->display_options['style_options']['attach_text'] = 'Download XLS file';
 $handler->display->display_options['style_options']['provide_file'] = 1;
 $handler->display->display_options['style_options']['filename'] = 'NNELS_bookshelf-%timestamp-mmm%timestamp-dd%timestamp-yyyy.xls';
 $handler->display->display_options['style_options']['parent_sort'] = 1;
@@ -515,6 +506,22 @@ $handler->display->display_options['fields']['body']['label'] = 'Summary';
 $handler->display->display_options['fields']['body']['element_label_colon'] = FALSE;
 $handler->display->display_options['fields']['body']['element_default_classes'] = FALSE;
 $handler->display->display_options['fields']['body']['type'] = 'text_plain';
+/* Field: Content: Genre */
+$handler->display->display_options['fields']['field_genre']['id'] = 'field_genre';
+$handler->display->display_options['fields']['field_genre']['table'] = 'field_data_field_genre';
+$handler->display->display_options['fields']['field_genre']['field'] = 'field_genre';
+$handler->display->display_options['fields']['field_genre']['delta_offset'] = '0';
+/* Field: Content: Publisher (Source) */
+$handler->display->display_options['fields']['field_publisher_source']['id'] = 'field_publisher_source';
+$handler->display->display_options['fields']['field_publisher_source']['table'] = 'field_data_field_publisher_source';
+$handler->display->display_options['fields']['field_publisher_source']['field'] = 'field_publisher_source';
+$handler->display->display_options['fields']['field_publisher_source']['label'] = 'Publisher';
+$handler->display->display_options['fields']['field_publisher_source']['delta_offset'] = '0';
+/* Field: Content: Subject */
+$handler->display->display_options['fields']['field_subject']['id'] = 'field_subject';
+$handler->display->display_options['fields']['field_subject']['table'] = 'field_data_field_subject';
+$handler->display->display_options['fields']['field_subject']['field'] = 'field_subject';
+$handler->display->display_options['fields']['field_subject']['delta_offset'] = '0';
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: User: Uid */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
